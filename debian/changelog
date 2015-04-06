@@ -1,0 +1,7 @@
+lxc (1.1.1-0ubuntu1~1.gbp944086) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @944086d8f7e37c60613a29fe257981e0006b6e71 **
+
+  * Add helper function to sort cgroup settings.
+
+ -- Kien Truong <duckientruong@gmail.com>  Mon, 06 Apr 2015 11:50:17 +0000
