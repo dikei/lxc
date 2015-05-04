@@ -804,6 +804,11 @@ struct lxc_container {
 	 *
 	 */
 	bool (*restore)(struct lxc_container *c, char *directory, bool verbose);
+
+	/**
+	 * The pid of the monitor process, we need this to kill the monitor early
+	 */
+	pid_t monitor_pid;
 };
 
 /*!

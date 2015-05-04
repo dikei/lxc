@@ -678,6 +678,15 @@ static bool do_lxcapi_start(struct lxc_container *c, int useinit, char * const a
 			argv = default_args;
 	}
 
+	/**
+	 * Create a pipe so that we can read the monitor PID
+	 */
+	int monitor_pipefd[2];
+	if (pipe(monitor_pipefd) == -1) {
+		ERROR("Unable to create pipe to monitor");
+		return false;
+	}
+
 	/*
 	* say, I'm not sure - what locks do we want here?  Any?
 	* Is liblxc's locking enough here to protect the on disk
@@ -693,6 +702,15 @@ static bool do_lxcapi_start(struct lxc_container *c, int useinit, char * const a
 			return false;
 
 		if (pid != 0) {
+			/*
+			 * Read the pid of the child from the pipe
+			 */
+			close(monitor_pipefd[1]);
+			if (read(monitor_pipefd[0], &c->monitor_pid, sizeof(c->monitor_pid)) < 0) {
+				WARN("Unable to read monitor PID");
+			}
+			close(monitor_pipefd[0]);
+
 			/* Set to NULL because we don't want father unlink
 			 * the PID file, child will do the free and unlink.
 			 */
@@ -714,8 +732,17 @@ static bool do_lxcapi_start(struct lxc_container *c, int useinit, char * const a
 			SYSERROR("Error doing dual-fork");
 			return false;
 		}
-		if (pid != 0)
+		if (pid != 0) {
+			/*
+			 * Write back the pid of the child to the parent process, then exit
+			 */
+			close(monitor_pipefd[0]);         
+			if(write(monitor_pipefd[1], &pid, sizeof(pid)) < 0) {
+				WARN("Error to write PID to parent");
+			}
+			close(monitor_pipefd[1]);         
 			exit(0);
+		}
 		/* like daemon(), chdir to / and redirect 0,1,2 to /dev/null */
 		if (chdir("/")) {
 			SYSERROR("Error chdir()ing to /.");

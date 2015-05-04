@@ -201,6 +201,22 @@ Options :\n\
 	.pidfile = NULL,
 };
 
+struct lxc_container *c;
+
+static void signal_handler(int signo)
+{
+	if (signo == SIGINT) {
+		// Aborting container start up
+		DEBUG("SIGINT caught. Stopping container %s %s", my_args.name, my_args.lxcpath[0]);
+		// Read the pid of the container
+		DEBUG("Killing monitor process: %d", c->monitor_pid);
+		if (c->monitor_pid > 0)
+			kill(c->monitor_pid, SIGKILL);
+		DEBUG("Container killed");
+		exit(1);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int err = 1;
@@ -211,7 +227,6 @@ int main(int argc, char *argv[])
 		"/sbin/init",
 		NULL,
 	};
-	struct lxc_container *c;
 
 	lxc_list_init(&defines);
 
@@ -334,6 +349,11 @@ int main(int argc, char *argv[])
 
 	if (my_args.close_all_fds)
 		c->want_close_all_fds(c, true);
+
+	// Catch SIGINT so that we can abort the container
+	if (signal(SIGINT, signal_handler) == SIG_ERR) {
+		DEBUG("Unable to handel SIGINT");
+	}
 
 	if (args == default_args)
 		err = c->start(c, 0, NULL) ? 0 : 1;
