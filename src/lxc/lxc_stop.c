@@ -59,7 +59,7 @@ static const struct option my_longopts[] = {
 	{"kill", no_argument, 0, 'k'},
 	{"nokill", no_argument, 0, OPT_NO_KILL},
 	{"nolock", no_argument, 0, OPT_NO_LOCK},
-	{"interactive", no_argument, 0, 'i'}
+	{"interactive", no_argument, 0, 'i'},
 	LXC_COMMON_OPTIONS
 };
 
@@ -199,10 +199,13 @@ int main(int argc, char *argv[])
 	if (my_args.interactive) {
 		do {
 			printf("Do you want to stop the container '%s' (Y/N) ? ", my_args.name);
-			scanf ("%1s", confirmed);	
-		} while (confirmed != 'Y' || confirmed != 'N')
+			if (scanf ("%1s", confirmed) != 1) {
+				fprintf(stderr, "Unable to read user confirmation.\n");
+				return 1;
+			};	
+		} while (strcmp(confirmed, "Y") != 0 && strcmp(confirmed, "N") != 0);
 		
-		if (confirmed == 'N') {
+		if (strcmp(confirmed, "N") == 0) {
 			return 0;
 		}
 	}
