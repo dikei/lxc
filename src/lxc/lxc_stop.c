@@ -45,6 +45,7 @@ static int my_parser(struct lxc_arguments* args, int c, char* arg)
 	case 'W': args->nowait = 1; break;
 	case 't': args->timeout = atoi(arg); break;
 	case 'k': args->hardstop = 1; break;
+	case 'i': args->interactive = 1; break;
 	case OPT_NO_LOCK: args->nolock = 1; break;
 	case OPT_NO_KILL: args->nokill = 1; break;
 	}
@@ -58,6 +59,7 @@ static const struct option my_longopts[] = {
 	{"kill", no_argument, 0, 'k'},
 	{"nokill", no_argument, 0, OPT_NO_KILL},
 	{"nolock", no_argument, 0, OPT_NO_LOCK},
+	{"interactive", no_argument, 0, 'i'}
 	LXC_COMMON_OPTIONS
 };
 
@@ -71,6 +73,7 @@ lxc-stop stops a container with the identifier NAME\n\
 Options :\n\
   -n, --name=NAME   NAME for name of the container\n\
   -r, --reboot      reboot the container\n\
+  -i, --interactive  ask for confirmation\n\
   -W, --nowait      don't wait for shutdown or reboot to complete\n\
   -t, --timeout=T   wait T seconds before hard-stopping\n\
   -k, --kill        kill container rather than request clean shutdown\n\
@@ -143,6 +146,7 @@ int main(int argc, char *argv[])
 	struct lxc_container *c;
 	bool s;
 	int ret = 1;
+	char confirmed[1];
 
 	if (lxc_arguments_parse(&my_args, argc, argv))
 		return 1;
@@ -192,6 +196,17 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (my_args.interactive) {
+		do {
+			printf("Do you want to stop the container '%s' (Y/N) ? ", my_args.name);
+			scanf ("%1s", confirmed);	
+		} while (confirmed != 'Y' || confirmed != 'N')
+		
+		if (confirmed == 'N') {
+			return 0;
+		}
+	}
+	
 	/* shortcut - if locking is bogus, we should be able to kill
 	 * containers at least */
 	if (my_args.nolock)

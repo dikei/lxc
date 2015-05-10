@@ -74,6 +74,7 @@ struct lxc_arguments {
 	int nolock;
 	int nowait;
 	int reboot;
+	int interactive;
 
 	/* for lxc-destroy */
 	int force;
