@@ -4609,3 +4609,164 @@ struct lxc_list *sort_cgroup_settings(struct lxc_list* cgroup_settings)
 
 	return result;
 }
+
+void dump_config(struct lxc_conf* conf) 
+{
+	DEBUG("AVEXE: Dumping lxc_conf struct");
+	DEBUG("AVEXE: is_execute: %d", conf->is_execute);
+	DEBUG("AVEXE: fstab: %s", conf->fstab);
+	DEBUG("AVEXE: tty count: %d", conf->tty);
+	DEBUG("AVEXE: pts count: %d", conf->pts);
+	DEBUG("AVEXE: reboot: %d", conf->reboot);
+	DEBUG("AVEXE: need_utmp_watch: %d", conf->need_utmp_watch);
+	DEBUG("AVEXE: personality: %ld", conf->personality);
+
+	// Dumping UTS setting
+	if (conf->utsname != NULL) {
+		DEBUG("AVEXE: utsname->sysname: %s", conf->utsname->sysname);
+		DEBUG("AVEXE: utsname->nodename: %s", conf->utsname->nodename);
+		DEBUG("AVEXE: utsname->release: %s", conf->utsname->release);
+		DEBUG("AVEXE: utsname->version: %s", conf->utsname->version);
+		DEBUG("AVEXE: utsname->machine: %s", conf->utsname->machine);
+		DEBUG("AVEXE: utsname->domainname: %s", conf->utsname->domainname);
+	} else {
+		DEBUG("AVEXE: utsname is NULL");
+	}
+
+	// Dumping cgroup setting
+	struct lxc_list *it;
+	lxc_list_for_each(it, &conf->cgroup) {
+		dump_cgroup(it->elem);
+	}
+
+	// Dumping id map setting
+	lxc_list_for_each(it, &conf->id_map) {
+		dump_idmap(it->elem);
+	}
+
+	// TODO: Dump network & nic
+
+	// Dumping mounts
+	switch (conf->auto_mounts & LXC_AUTO_PROC_MASK) {
+		case LXC_AUTO_PROC_MIXED:         
+			DEBUG("AVEXE: auto mount /proc r-w");
+			break;
+		case LXC_AUTO_PROC_RW:
+		    DEBUG("AVEXE: auto mount /proc r-w, except proc/sys and /proc/sysrq-trigger read-only");
+		    break;
+		default: 
+			DEBUG("AVEXE: not auto mount /proc");
+			break;
+	}
+	switch (conf->auto_mounts & LXC_AUTO_SYS_MASK) {
+		case LXC_AUTO_SYS_RO:             
+			DEBUG("AVEXE: auto mount /sys read-only");
+			break;
+		case LXC_AUTO_SYS_RW:
+			DEBUG("AVEXE: auto mount /sys read-write");
+			break;
+		case LXC_AUTO_SYS_MIXED:
+			DEBUG("AVEXE: auto mount /sys read-only and /sys/class/net read-write");
+			break;
+		default: 
+			DEBUG("AVEXE: not auto mount /sys");
+			break;
+	}
+	switch (conf->auto_mounts & LXC_AUTO_CGROUP_MASK) {
+		case LXC_AUTO_CGROUP_NOSPEC:      
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (partial mount, r/w or mixed, depending on caps)");
+			break;
+		case LXC_AUTO_CGROUP_MIXED:       
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (partial mount, paths r/o, cgroup r/w)");
+			break;
+		case LXC_AUTO_CGROUP_RO:          
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (partial mount, read-only)");
+			break;
+		case LXC_AUTO_CGROUP_RW:
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (partial mount, read-write)");
+			break;
+		case LXC_AUTO_CGROUP_FULL_NOSPEC: 
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (full mount, r/w or mixed, depending on caps)");
+			break;
+		case LXC_AUTO_CGROUP_FULL_MIXED:  
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (full mount, parent r/o, own r/w)");
+			break;
+		case LXC_AUTO_CGROUP_FULL_RO:
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (full mount, read-only)");
+			break;
+		case LXC_AUTO_CGROUP_FULL_RW:     
+			DEBUG("AVEXE: auto mount /sys/fs/cgroup (full mount, read-write)");
+			break;
+		default: 
+			DEBUG("AVEXE: not auto mount /sys/fs/cgroup");
+			break;
+	}
+	char* mount_entry;
+	lxc_list_for_each(it, &conf->mount_list) {
+		mount_entry = it->elem;
+		DEBUG("AVEXE: mount list: %s", mount_entry);
+	}
+
+	// Dumping capability
+	char* cap_entry;
+	lxc_list_for_each(it, &conf->caps) {
+		cap_entry = it->elem;
+		DEBUG("AVEXE: dropping capability: %s", cap_entry);
+	}
+	lxc_list_for_each(it, &conf->keepcaps) {
+		cap_entry = it->elem;
+		DEBUG("AVEXE: keeping capability: %s", cap_entry);
+	}
+
+	DEBUG("AVEXE: tty_info->nbtty: %d", conf->tty_info.nbtty);
+	if (conf->tty_info.pty_info != NULL) {
+		DEBUG("AVEXE: pty name: %s", conf->tty_info.pty_info->name);
+		DEBUG("AVEXE: pty status: master: %d, slave: %d, busy: %d", 
+			conf->tty_info.pty_info->master, 
+			conf->tty_info.pty_info->slave, 
+			conf->tty_info.pty_info->busy);
+	} else {
+		DEBUG("AVEXE: tty_info->pty_info is null");
+	}
+
+	DEBUG("AVEXE: pty_names: %s", conf->pty_names);
+
+	// Dumping console
+	DEBUG("AVEXE: console status: master: %d, slave: %d, peer: %d", 
+		conf->console.master, 
+		conf->console.slave, 
+		conf->console.peer);
+	DEBUG("AVEXE: console path: %s, log_path: %s", conf->console.path, conf->console.log_path);
+
+	// Dumping rootfs
+	DEBUG("AVEXE: rootfs->path: %s", conf->rootfs.path);
+	DEBUG("AVEXE: rootfs->mount: %s", conf->rootfs.mount);
+	DEBUG("AVEXE: rootfs->pivot: %s", conf->rootfs.pivot);
+	DEBUG("AVEXE: rootfs->options: %s", conf->rootfs.options);
+
+	// Dumping environment
+	char* environment;
+	lxc_list_for_each(it, &conf->environment) {
+		environment = it->elem;
+		DEBUG("AVEXE: environment variable: %s", environment);
+	}
+	
+	// Dumping init command
+	DEBUG("AVEXE: init_cmd: %s", conf->init_cmd);
+}
+
+void dump_cgroup(struct lxc_cgroup* cgroup) {
+	DEBUG("AVEXE: Dumping lxc_cgroup struct");
+	DEBUG("AVEXE: Subsystem: %s", cgroup->subsystem);
+	DEBUG("AVEXE: Value: %s", cgroup->value);
+}
+
+void dump_idmap(struct id_map* idmap) {
+	DEBUG("AVEXE: Dumping id_map struct");
+	if (idmap->idtype == ID_TYPE_UID) {
+		DEBUG("AVEXE: idtype: USER_ID");
+	} else if (idmap->idtype == ID_TYPE_GID) {
+		DEBUG("AVEXE: idtype: GROUP_ID");
+	}
+	DEBUG("AVEXE: hostid: %lu, nsid: %lu, range: %lu", idmap->hostid, idmap->nsid, idmap->range);
+}

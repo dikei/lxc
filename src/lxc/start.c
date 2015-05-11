@@ -760,6 +760,8 @@ static int do_start(void *data)
 		}
 	}
 
+	dump_handler(handler);
+	
 	close(handler->sigfd);
 
 	if (handler->backgrounded) {
@@ -1312,7 +1314,8 @@ void dump_handler(struct lxc_handler* handler)
 	DEBUG("AVEXE: PINFD: %d", handler->pinfd);
 	DEBUG("AVEXE: LXC PATH: %s", handler->lxcpath);
 	DEBUG("AVEXE: BACKGROUNDED: %d", handler->backgrounded);
-	// TODO: DUMP handler->conf
+
+	dump_config(handler->conf);
 	// TODO: DUMP handler->data
 	// TODO: DUMP handler->cgroup_data
 }

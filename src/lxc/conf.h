@@ -432,4 +432,7 @@ void remount_all_slave(void);
 extern void suggest_default_idmap(void);
 FILE *write_mount_file(struct lxc_list *mount);
 struct lxc_list *sort_cgroup_settings(struct lxc_list* cgroup_settings);
+void dump_config(struct lxc_conf* config);
+void dump_cgroup(struct lxc_cgroup* cgroup);
+void dump_idmap(struct id_map* idmap);
 #endif
