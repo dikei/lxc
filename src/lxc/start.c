@@ -1280,3 +1280,39 @@ int lxc_start(const char *name, char *const argv[], struct lxc_conf *conf,
 	conf->need_utmp_watch = 1;
 	return __lxc_start(name, conf, &start_ops, &start_arg, lxcpath, backgrounded);
 }
+
+void dump_handler(struct lxc_handler* handler) 
+{
+	DEBUG("AVEXE: Dumping lxc_handler struct");
+	// Dump basic info
+	DEBUG("AVEXE: Process id: %d", handler->pid);
+	DEBUG("AVEXE: Process name: %s", handler->name);
+	// Dump handle state
+	DEBUG("AVEXE: Process state: %s", lxc_state2str(handler->state));		
+	// Dump clone flag
+	if ((handler->clone_flags & CLONE_NEWNS) == CLONE_NEWNS) {
+		DEBUG("AVEXE: Mount NS enabled");
+	}
+	if ((handler->clone_flags & CLONE_NEWNET) == CLONE_NEWNET) {
+		DEBUG("AVEXE: Network NS enabled");
+	}
+	if ((handler->clone_flags & CLONE_NEWUSER) == CLONE_NEWUSER) {
+		DEBUG("AVEXE: User NS enabled");
+	}
+	if ((handler->clone_flags & CLONE_NEWPID) == CLONE_NEWPID) {
+		DEBUG("AVEXE: PID NS enabled");
+	}
+	if ((handler->clone_flags & CLONE_NEWUTS) == CLONE_NEWUTS) {
+		DEBUG("AVEXE: UTS NS enabled");
+	}
+	if ((handler->clone_flags & CLONE_NEWIPC) == CLONE_NEWIPC) {
+		DEBUG("AVEXE: IPC NS enabled");
+	}
+	DEBUG("AVEXE: SIGFD: %d", handler->sigfd);
+	DEBUG("AVEXE: PINFD: %d", handler->pinfd);
+	DEBUG("AVEXE: LXC PATH: %s", handler->lxcpath);
+	DEBUG("AVEXE: BACKGROUNDED: %d", handler->backgrounded);
+	// TODO: DUMP handler->conf
+	// TODO: DUMP handler->data
+	// TODO: DUMP handler->cgroup_data
+}

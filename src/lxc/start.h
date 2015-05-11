@@ -89,5 +89,7 @@ int __lxc_start(const char *, struct lxc_conf *, struct lxc_operations *,
 		void *, const char *, bool);
 
 extern void resolve_clone_flags(struct lxc_handler *handler);
+
+void dump_handler(struct lxc_handler *handler);
 #endif
 

@@ -3804,6 +3804,9 @@ bad:
 
 int lxc_setup(struct lxc_handler *handler)
 {
+	// Dump lxc_handler
+	dump_handler(handler);
+
 	const char *name = handler->name;
 	struct lxc_conf *lxc_conf = handler->conf;
 	const char *lxcpath = handler->lxcpath;
